@@ -50,8 +50,22 @@ class SheetsService:
             self._init_local_store()
             return
 
-        # 1. Try OAuth 2.0 User Token
-        if token_path.exists():
+        # 1. Try OAuth 2.0 User Token from Env Variable (for Vercel/cloud) or file
+        token_env = os.getenv("GOOGLE_TOKEN_JSON", "").strip()
+        if token_env:
+            try:
+                token_data = json.loads(token_env)
+                user_creds = UserCredentials.from_authorized_user_info(token_data, SCOPES)
+                if user_creds.expired and user_creds.refresh_token:
+                    user_creds.refresh(Request())
+                self.client = gspread.authorize(user_creds)
+                self.spreadsheet = self.client.open_by_key(sheet_id)
+                self.is_connected = True
+                print(f"[SheetsService] Authenticated as Google User via env var. Connected to: '{self.spreadsheet.title}' ({sheet_id[:6]}...)")
+                return
+            except Exception as e:
+                print(f"[SheetsService] Env OAuth token connection failed: {e}")
+        elif token_path.exists():
             try:
                 user_creds = UserCredentials.from_authorized_user_file(str(token_path), SCOPES)
                 if user_creds.expired and user_creds.refresh_token:
@@ -61,13 +75,25 @@ class SheetsService:
                 self.client = gspread.authorize(user_creds)
                 self.spreadsheet = self.client.open_by_key(sheet_id)
                 self.is_connected = True
-                print(f"[SheetsService] Authenticated as Google User. Connected to: '{self.spreadsheet.title}' ({sheet_id[:6]}...)")
+                print(f"[SheetsService] Authenticated as Google User from file. Connected to: '{self.spreadsheet.title}' ({sheet_id[:6]}...)")
                 return
             except Exception as e:
-                print(f"[SheetsService] OAuth token connection failed: {e}")
+                print(f"[SheetsService] File OAuth token connection failed: {e}")
 
-        # 2. Try Service Account
-        if creds_path.exists():
+        # 2. Try Service Account from Env Variable or file
+        creds_env = os.getenv("GOOGLE_CREDENTIALS_JSON", "").strip()
+        if creds_env:
+            try:
+                cdata = json.loads(creds_env)
+                credentials = Credentials.from_service_account_info(cdata, scopes=SCOPES)
+                self.client = gspread.authorize(credentials)
+                self.spreadsheet = self.client.open_by_key(sheet_id)
+                self.is_connected = True
+                print(f"[SheetsService] Authenticated via Service Account env var. Connected to: '{self.spreadsheet.title}' ({sheet_id[:6]}...)")
+                return
+            except Exception as e:
+                print(f"[SheetsService] Env service account connection failed: {e}")
+        elif creds_path.exists():
             try:
                 with open(creds_path, "r", encoding="utf-8") as f:
                     cdata = json.load(f)
@@ -76,10 +102,10 @@ class SheetsService:
                     self.client = gspread.authorize(credentials)
                     self.spreadsheet = self.client.open_by_key(sheet_id)
                     self.is_connected = True
-                    print(f"[SheetsService] Authenticated via Service Account. Connected to: '{self.spreadsheet.title}' ({sheet_id[:6]}...)")
+                    print(f"[SheetsService] Authenticated via Service Account file. Connected to: '{self.spreadsheet.title}' ({sheet_id[:6]}...)")
                     return
             except Exception as e:
-                print(f"[SheetsService] Service account connection failed: {e}")
+                print(f"[SheetsService] Service account file connection failed: {e}")
 
         print("[SheetsService] No active Google Sheets connection. Running in local fallback mode.")
         self.is_connected = False
