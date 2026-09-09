@@ -9,7 +9,8 @@ import {
 } from '../db/indexdb';
 import { generateTimestampId } from '../utils/formatters';
 
-const API_BASE = '/api';
+const rawApiBase = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE = rawApiBase ? `${rawApiBase.replace(/\/+$/, '')}/api` : '/api';
 
 export const api = {
   // Fetch initial data (Online with IndexedDB cache fallback)

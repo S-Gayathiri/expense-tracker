@@ -36,7 +36,7 @@ export default function Navbar({
                 </span>
               ) : (
                 <a
-                  href="/api/auth/login"
+                  href={`${(import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '')}/api/auth/login`}
                   className="flex items-center text-indigo-400 hover:text-indigo-300 underline cursor-pointer"
                   title="Click to authenticate your Google Account via Web OAuth"
                 >

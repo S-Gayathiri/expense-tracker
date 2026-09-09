@@ -62,6 +62,16 @@ class CategoryCreate(BaseModel):
 from fastapi.responses import RedirectResponse
 from google_auth_oauthlib.flow import Flow
 
+# Root Status Endpoint (so visiting the Render URL in browser shows active status)
+@app.get("/")
+def root_status():
+    return {
+        "status": "healthy",
+        "service": "PT Selavugal Backend API",
+        "storage_mode": "google_sheets" if sheets_service.is_connected else "local_fallback",
+        "docs": "/docs"
+    }
+
 # Health / Status Check
 @app.get("/api/health")
 def health_check():
