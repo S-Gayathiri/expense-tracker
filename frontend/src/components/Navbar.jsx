@@ -11,7 +11,7 @@ export default function Navbar({
   onInstallApp
 }) {
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#090d16]/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-3">
+    <header className="sticky top-0 z-40 w-full bg-[#090d16]/95 backdrop-blur-md border-b border-slate-800/80 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         {/* Brand Logo & Name */}
         <div className="flex items-center space-x-3">
