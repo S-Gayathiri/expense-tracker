@@ -52,7 +52,7 @@ self.addEventListener('fetch', (event) => {
               cache.put(event.request, networkResponse);
             });
           }
-        }).catch(() => {/* Ignore offline background fetch failure */});
+        }).catch(() => {/* Ignore offline background fetch failure */ });
         return cachedResponse;
       }
 

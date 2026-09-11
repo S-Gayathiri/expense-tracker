@@ -72,20 +72,38 @@ export default function App() {
     }
   }, [checkPendingQueue]);
 
+  const [syncErrorMessage, setSyncErrorMessage] = useState(null);
+
   // Synchronize pending offline transactions
   const handleSyncNow = useCallback(async () => {
     if (isSyncing || !navigator.onLine) return;
     setIsSyncing(true);
+    setSyncErrorMessage(null);
     try {
-      await api.syncPendingChanges();
+      const syncResult = await api.syncPendingChanges();
+      if (syncResult && syncResult.errors > 0) {
+        setSyncErrorMessage(
+          `Sync failed for ${syncResult.errors} item(s): ${syncResult.details?.join('; ') || 'Server rejected changes'}`
+        );
+      }
       await loadData(false);
     } catch (e) {
       console.error('Sync error:', e);
+      setSyncErrorMessage(`Sync error: ${e.message || 'Network request failed'}`);
     } finally {
       setIsSyncing(false);
       checkPendingQueue();
     }
   }, [isSyncing, loadData, checkPendingQueue]);
+
+  const handleClearPendingQueue = useCallback(async () => {
+    if (window.confirm("Do you want to discard the pending offline changes that failed to sync?")) {
+      await api.clearQueue();
+      setSyncErrorMessage(null);
+      await checkPendingQueue();
+      await loadData(false);
+    }
+  }, [checkPendingQueue, loadData]);
 
   // Online / Offline & PWA listeners
   useEffect(() => {
@@ -284,6 +302,9 @@ export default function App() {
           pendingSyncCount={pendingSyncCount}
           onSyncNow={handleSyncNow}
           isSyncing={isSyncing}
+          errorMessage={syncErrorMessage}
+          onClearError={() => setSyncErrorMessage(null)}
+          onClearQueue={handleClearPendingQueue}
         />
 
         {/* Tab 1: Expenses Feed */}

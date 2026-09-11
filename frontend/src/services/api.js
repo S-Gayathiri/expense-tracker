@@ -5,7 +5,8 @@ import {
   getCachedGroups,
   addToSyncQueue,
   getSyncQueue,
-  removeSyncQueueItem
+  removeSyncQueueItem,
+  clearSyncQueue
 } from '../db/indexdb';
 import { generateTimestampId } from '../utils/formatters';
 
@@ -13,6 +14,9 @@ const rawApiBase = import.meta.env.VITE_API_BASE_URL || '';
 const API_BASE = rawApiBase ? `${rawApiBase.replace(/\/+$/, '')}/api` : '/api';
 
 export const api = {
+  async clearQueue() {
+    await clearSyncQueue();
+  },
   // Fetch initial data (Online with IndexedDB cache fallback)
   async getData() {
     try {
@@ -255,76 +259,75 @@ export const api = {
   // Sync Queue Runner
   async syncPendingChanges(onProgress) {
     const queue = await getSyncQueue();
-    if (!queue || queue.length === 0) return { processed: 0, errors: 0 };
+    if (!queue || queue.length === 0) return { processed: 0, errors: 0, details: [] };
 
     let processed = 0;
     let errors = 0;
+    const details = [];
 
     for (const item of queue) {
       try {
+        let res = null;
         if (item.type === 'CREATE_TRANSACTION') {
-          // Remove local-only temp fields before sending
-          const payload = { ...item.payload };
-          delete payload._is_pending_sync;
-          const res = await fetch(`${API_BASE}/transactions`, {
+          // Clean payload to ensure strict FastAPI Pydantic schema validation
+          const payload = {
+            id: item.payload.id || generateTimestampId(),
+            amount: Number(item.payload.amount),
+            description: String(item.payload.description || '').trim(),
+            date: item.payload.date ? String(item.payload.date).split('T')[0].split(' ')[0] : new Date().toISOString().split('T')[0],
+            category: String(item.payload.category || 'Other').trim(),
+            payment_mode: String(item.payload.payment_mode || 'UPI').trim(),
+            group_id: String(item.payload.group_id || '').trim(),
+            created_at: item.payload.created_at || new Date().toISOString()
+          };
+          res = await fetch(`${API_BASE}/transactions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
-          if (res.ok) {
-            await removeSyncQueueItem(item.queue_id);
-            processed++;
-          } else {
-            errors++;
-          }
         } else if (item.type === 'UPDATE_TRANSACTION') {
-          const res = await fetch(`${API_BASE}/transactions/${item.transactionId}`, {
+          const payload = { ...item.payload };
+          if (payload.amount !== undefined) payload.amount = Number(payload.amount);
+          res = await fetch(`${API_BASE}/transactions/${item.transactionId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(item.payload)
+            body: JSON.stringify(payload)
           });
-          if (res.ok) {
-            await removeSyncQueueItem(item.queue_id);
-            processed++;
-          } else {
-            errors++;
-          }
         } else if (item.type === 'DELETE_TRANSACTION') {
-          const res = await fetch(`${API_BASE}/transactions/${item.transactionId}`, {
+          res = await fetch(`${API_BASE}/transactions/${item.transactionId}`, {
             method: 'DELETE'
           });
-          if (res.ok) {
-            await removeSyncQueueItem(item.queue_id);
-            processed++;
-          } else {
-            errors++;
-          }
         } else if (item.type === 'CREATE_GROUP') {
-          const res = await fetch(`${API_BASE}/groups`, {
+          res = await fetch(`${API_BASE}/groups`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ group_name: item.payload.group_name })
+            body: JSON.stringify({ group_name: String(item.payload.group_name || '').trim() })
           });
-          if (res.ok) {
-            await removeSyncQueueItem(item.queue_id);
-            processed++;
-          } else {
-            errors++;
-          }
         } else if (item.type === 'ARCHIVE_GROUP') {
-          const res = await fetch(`${API_BASE}/groups/${item.groupId}/archive`, {
+          res = await fetch(`${API_BASE}/groups/${item.groupId}/archive`, {
             method: 'PUT'
           });
-          if (res.ok) {
-            await removeSyncQueueItem(item.queue_id);
-            processed++;
-          } else {
-            errors++;
+        }
+
+        if (res && res.ok) {
+          await removeSyncQueueItem(item.queue_id);
+          processed++;
+        } else {
+          errors++;
+          let errText = 'Server error';
+          try {
+            const errJson = await res.json();
+            errText = errJson.detail || JSON.stringify(errJson);
+          } catch (_) {
+            errText = res ? `${res.status} ${res.statusText}` : 'No response';
           }
+          console.error(`[Sync Error] Item ${item.queue_id} (${item.type}):`, errText);
+          details.push(`Item ${item.type}: ${errText}`);
         }
       } catch (e) {
         errors++;
-        console.error('[API Sync] Failed item sync:', e);
+        console.error('[API Sync Network Error]:', e);
+        details.push(e.message || 'Network unreachable');
       }
 
       if (onProgress) {
@@ -332,6 +335,6 @@ export const api = {
       }
     }
 
-    return { processed, errors };
+    return { processed, errors, details };
   }
 };
