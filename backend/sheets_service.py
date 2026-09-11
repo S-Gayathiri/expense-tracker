@@ -319,7 +319,14 @@ class SheetsService:
                 new_tx["created_at"],
                 "FALSE"
             ]
-            tx_ws.append_row(row, value_input_option="USER_ENTERED")
+            # Explicitly target next empty row in column A to prevent skipping rows or shifting columns
+            col_a = tx_ws.col_values(1)
+            next_row = max(len(col_a) + 1, 2)
+            tx_ws.update(
+                f"A{next_row}:I{next_row}",
+                [row],
+                value_input_option="USER_ENTERED"
+            )
             return new_tx
         except Exception as e:
             print(f"[SheetsService] Error adding transaction to Google Sheet: {e}. Saving locally.")
@@ -446,7 +453,13 @@ class SheetsService:
         try:
             grp_ws = self.spreadsheet.worksheet("Groups")
             row = [new_group["group_id"], new_group["group_name"], new_group["status"], new_group["created_at"]]
-            grp_ws.append_row(row, value_input_option="USER_ENTERED")
+            col_a = grp_ws.col_values(1)
+            next_row = max(len(col_a) + 1, 2)
+            grp_ws.update(
+                f"A{next_row}:D{next_row}",
+                [row],
+                value_input_option="USER_ENTERED"
+            )
             return new_group
         except Exception as e:
             print(f"[SheetsService] Error adding group to Google Sheet: {e}. Saving locally.")

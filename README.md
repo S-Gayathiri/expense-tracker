@@ -33,13 +33,10 @@ A modern, responsive, mobile-first Progressive Web Application (PWA) installable
 expense-tracker/
 ├── backend/
 │   ├── main.py                  # FastAPI REST API server
-│   ├── server.js                # Express Node.js REST API server (alternative)
 │   ├── sheets_service.py        # Sheets abstraction with gspread + local fallback
-│   ├── sheets_service.js        # Sheets abstraction with googleapis + local fallback
 │   ├── requirements.txt         # Python dependencies
-│   ├── package.json             # Node.js backend dependencies
 │   ├── .env.example             # Environment template
-│   └── credentials.json.example # Service Account key template
+│   └── credentials.json.example # OAuth client key template
 │
 ├── frontend/
 │   ├── public/
@@ -159,7 +156,6 @@ python -m uvicorn main:app --reload --port 8000
 # or simply:
 python main.py
 ```
-*(Or for Node.js: `npm install && npm start`)*
 
 The backend will start at `http://localhost:8000`.
 
