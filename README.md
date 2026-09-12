@@ -176,6 +176,34 @@ Open `http://localhost:5173` in **Google Chrome**.
 
 ---
 
+## 🚀 Deploying to Railway (Zero Cold Starts / No 50s Lag)
+
+Railway runs persistent containers 24/7 without the cold-start delays common on Render's free tier.
+
+### 1. Create a Project on Railway
+1. Go to [railway.app](https://railway.app) and log in with GitHub.
+2. Click **"New Project"** > **"Deploy from GitHub repo"**.
+3. Select your repository: `expense-tracker`.
+
+### 2. Configure Service Settings
+1. Click on the newly created service in your Railway project canvas.
+2. Go to the **"Settings"** tab:
+   - **Root Directory**: Set to `/backend`
+   - (Railway will automatically detect the [`railway.json`](file:///e:/Dev%20Projects/expense-tracker/backend/railway.json) / [`Procfile`](file:///e:/Dev%20Projects/expense-tracker/backend/Procfile) we configured)
+3. In **"Networking"**, click **"Generate Domain"** to get your public API URL (e.g. `https://expense-tracker-production.up.railway.app`).
+
+### 3. Add Environment Variables
+Go to the **"Variables"** tab and add:
+- `SPREADSHEET_ID`: Your Google Sheet ID (from your Google Sheet URL)
+- `GOOGLE_TOKEN_JSON`: Paste the entire content of your local `backend/token.json` as a single line string.
+  *(This allows Railway to connect to your Google Sheet immediately without having to go through login again)*
+
+### 4. Connect Frontend to Railway API
+In your frontend deployment (e.g., Vercel / Netlify / GitHub Pages) or local `.env`:
+- Set `VITE_API_BASE_URL` to your Railway domain (e.g. `https://expense-tracker-production.up.railway.app`).
+
+---
+
 ## 📲 How to Install the PWA in Chrome
 
 1. Open `http://localhost:5173` in **Google Chrome**.
