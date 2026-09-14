@@ -1,4 +1,4 @@
-﻿# Dependencies
+# Dependencies
 node_modules/
 */node_modules/
 
@@ -17,9 +17,9 @@ build/
 
 # Google OAuth Secrets & local credentials
 credentials.json
-backend/credentials.json
+api/credentials.json
 token.json
-backend/token.json
+api/token.json
 
 # Logs & Temporary files
 *.log

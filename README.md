@@ -141,32 +141,27 @@ expense-tracker/
      - `http://localhost:8000/api/auth/callback`
      - `http://localhost:8080/`
    - Click **Create**.
-6. Download the JSON, rename it to `credentials.json`, and place it in the `backend/` folder:
+6. Download the JSON, rename it to `credentials.json`, and place it in the `api/` folder:
    ```text
-   backend/credentials.json
+   api/credentials.json
    ```
 
 ---
 
-### Step 3: Launch the Backend Server
+### Step 3: Local Development (Single Root)
 
+Install frontend dependencies:
 ```bash
-cd backend
-python -m uvicorn main:app --reload --port 8000
-# or simply:
-python main.py
+npm install
 ```
 
-The backend will start at `http://localhost:8000`.
-
----
-
-### Step 4: Launch the Frontend Web App (PWA)
-
-In a new terminal window:
+Start the Python backend:
 ```bash
-cd frontend
-npm install
+python -m uvicorn api.main:app --reload --port 8000
+```
+
+Start the Vite frontend in another terminal:
+```bash
 npm run dev
 ```
 
@@ -176,31 +171,27 @@ Open `http://localhost:5173` in **Google Chrome**.
 
 ---
 
-## 🚀 Deploying to Railway (Zero Cold Starts / No 50s Lag)
+## 🚀 Deploying to Vercel (Single Root Project)
 
-Railway runs persistent containers 24/7 without the cold-start delays common on Render's free tier.
+Both the React PWA frontend and the Python FastAPI backend deploy together under **one single root**:
 
-### 1. Create a Project on Railway
-1. Go to [railway.app](https://railway.app) and log in with GitHub.
-2. Click **"New Project"** > **"Deploy from GitHub repo"**.
-3. Select your repository: `expense-tracker`.
+### 1. Import Project to Vercel
+1. Go to [vercel.com](https://vercel.com) and log in with your GitHub account.
+2. Click **"Add New..."** > **"Project"**.
+3. Import your `expense-tracker` repository.
+4. Framework Preset: **Vite** (Vercel automatically detects the root `package.json`).
+5. Root Directory: Leave as `./` (default).
 
-### 2. Configure Service Settings
-1. Click on the newly created service in your Railway project canvas.
-2. Go to the **"Settings"** tab:
-   - **Root Directory**: Set to `/backend`
-   - (Railway will automatically detect the [`railway.json`](file:///e:/Dev%20Projects/expense-tracker/backend/railway.json) / [`Procfile`](file:///e:/Dev%20Projects/expense-tracker/backend/Procfile) we configured)
-3. In **"Networking"**, click **"Generate Domain"** to get your public API URL (e.g. `https://expense-tracker-production.up.railway.app`).
+### 2. Configure Environment Variables
+In the **Environment Variables** section on Vercel, add:
+- `SPREADSHEET_ID`: Your Google Sheet ID (e.g. `1TDW3VNlr7rM4jA4tjdlGS8up_2jhtB8gr88CF6EK6E0`)
+- `GOOGLE_TOKEN_JSON`: Copy and paste the entire JSON string from your local `api/token.json`.
+  *(This gives Vercel instant access to your Google Sheet on first boot without needing another login step)*
 
-### 3. Add Environment Variables
-Go to the **"Variables"** tab and add:
-- `SPREADSHEET_ID`: Your Google Sheet ID (from your Google Sheet URL)
-- `GOOGLE_TOKEN_JSON`: Paste the entire content of your local `backend/token.json` as a single line string.
-  *(This allows Railway to connect to your Google Sheet immediately without having to go through login again)*
-
-### 4. Connect Frontend to Railway API
-In your frontend deployment (e.g., Vercel / Netlify / GitHub Pages) or local `.env`:
-- Set `VITE_API_BASE_URL` to your Railway domain (e.g. `https://expense-tracker-production.up.railway.app`).
+### 3. Deploy
+Click **"Deploy"**. 
+- Your frontend will load instantly from Vercel's global CDN.
+- All `/api/*` endpoints will run as fast serverless Python functions under the exact same domain.
 
 ---
 

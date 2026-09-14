@@ -91,22 +91,26 @@ def auth_status():
         "storage_mode": "google_sheets" if sheets_service.is_connected else "local_fallback"
     }
 
+from fastapi import Request
+
 @app.get("/api/auth/login")
-def auth_login():
+def auth_login(request: Request):
     """Web OAuth login redirect for browser-based sign in"""
     backend_dir = os.path.dirname(os.path.abspath(__file__))
     creds_path = os.path.join(backend_dir, "credentials.json")
-    state_file = os.path.join(backend_dir, ".oauth_state.json")
+    state_file = os.path.join("/tmp" if os.getenv("VERCEL") else backend_dir, ".oauth_state.json")
     if not os.path.exists(creds_path):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="credentials.json not found in backend directory. Please configure your OAuth Client ID."
         )
     try:
+        base_url = str(request.base_url).rstrip("/")
+        redirect_uri = f"{base_url}/api/auth/callback"
         flow = Flow.from_client_secrets_file(
             creds_path,
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
-            redirect_uri="http://localhost:8000/api/auth/callback"
+            redirect_uri=redirect_uri
         )
         auth_url, state = flow.authorization_url(
             access_type="offline",
@@ -135,12 +139,12 @@ def auth_login():
         )
 
 @app.get("/api/auth/callback")
-def auth_callback(code: str, state: Optional[str] = None):
+def auth_callback(request: Request, code: str, state: Optional[str] = None):
     """Handles OAuth callback, saves token.json, and redirects to frontend Web App"""
     backend_dir = os.path.dirname(os.path.abspath(__file__))
     creds_path = os.path.join(backend_dir, "credentials.json")
     token_path = os.path.join(backend_dir, "token.json")
-    state_file = os.path.join(backend_dir, ".oauth_state.json")
+    state_file = os.path.join("/tmp" if os.getenv("VERCEL") else backend_dir, ".oauth_state.json")
 
     code_verifier = OAUTH_SESSIONS.get(state) if state else None
     if not code_verifier and state and os.path.exists(state_file):
@@ -152,10 +156,12 @@ def auth_callback(code: str, state: Optional[str] = None):
             pass
 
     try:
+        base_url = str(request.base_url).rstrip("/")
+        redirect_uri = f"{base_url}/api/auth/callback"
         flow = Flow.from_client_secrets_file(
             creds_path,
             scopes=["https://www.googleapis.com/auth/spreadsheets"],
-            redirect_uri="http://localhost:8000/api/auth/callback"
+            redirect_uri=redirect_uri
         )
         if code_verifier:
             flow.fetch_token(code=code, code_verifier=code_verifier)
@@ -177,7 +183,7 @@ def auth_callback(code: str, state: Optional[str] = None):
                 pass
 
         # Redirect user back to frontend PWA Web App
-        return RedirectResponse("http://localhost:5173/?connected=true")
+        return RedirectResponse("/?connected=true")
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -14,7 +14,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
-LOCAL_STORE_PATH = BASE_DIR / "local_storage.json"
+# On serverless (Vercel / AWS Lambda), only /tmp is writable
+if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+    LOCAL_STORE_PATH = Path("/tmp") / "local_storage.json"
+else:
+    LOCAL_STORE_PATH = BASE_DIR / "local_storage.json"
+
 CREDS_FILE = os.getenv("CREDENTIALS_FILE", "credentials.json")
 TOKEN_FILE = "token.json"
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID", "").strip()
