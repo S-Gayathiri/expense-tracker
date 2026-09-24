@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Check, Calendar, Users, TrendingUp, TrendingDown } from 'lucide-react';
+import { X, Check, Calendar, Users } from 'lucide-react';
 import { PAYMENT_MODES, getMergedCategories } from '../utils/constants';
 import DescriptionInput from './DescriptionInput';
 
@@ -12,7 +12,6 @@ export default function TransactionEditModal({
   onClose
 }) {
   const allCategories = getMergedCategories(customCategories);
-  const [txType, setTxType] = useState(transaction.transaction_type || 'expense');
   const [amount, setAmount] = useState(String(transaction.amount || ''));
   const [description, setDescription] = useState(transaction.description || '');
   const [date, setDate] = useState(() => {
@@ -26,8 +25,6 @@ export default function TransactionEditModal({
   const [groupId, setGroupId] = useState(transaction.group_id || '');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const isIncome = txType === 'income';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,8 +50,7 @@ export default function TransactionEditModal({
         date: formattedDate,
         category,
         payment_mode: paymentMode,
-        group_id: groupId || '',
-        transaction_type: txType
+        group_id: groupId || ''
       });
       onClose();
     } catch (err) {
@@ -70,7 +66,7 @@ export default function TransactionEditModal({
         {/* Header */}
         <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/50">
           <div>
-            <h2 className="text-base font-bold text-white">{isIncome ? 'Edit Income' : 'Edit Expense'}</h2>
+            <h2 className="text-base font-bold text-white">Edit Expense</h2>
             <p className="text-xs text-slate-400">Update transaction details</p>
           </div>
           <button
@@ -84,34 +80,6 @@ export default function TransactionEditModal({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
-          {/* Income / Expense Toggle */}
-          <div className="flex rounded-2xl overflow-hidden border border-slate-800 bg-slate-950">
-            <button
-              type="button"
-              onClick={() => setTxType('expense')}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-bold transition-all ${
-                !isIncome
-                  ? 'bg-rose-500/20 text-rose-300 border-r border-rose-500/30'
-                  : 'text-slate-500 hover:text-slate-300 border-r border-slate-800'
-              }`}
-            >
-              <TrendingDown className="w-4 h-4" />
-              Expense
-            </button>
-            <button
-              type="button"
-              onClick={() => setTxType('income')}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-bold transition-all ${
-                isIncome
-                  ? 'bg-emerald-500/20 text-emerald-300'
-                  : 'text-slate-500 hover:text-slate-300'
-              }`}
-            >
-              <TrendingUp className="w-4 h-4" />
-              Income
-            </button>
-          </div>
-
           {error && (
             <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-medium">
               {error}
@@ -238,11 +206,7 @@ export default function TransactionEditModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center space-x-1 transition disabled:opacity-50 ${
-                isIncome
-                  ? 'bg-emerald-500 hover:bg-emerald-600 text-slate-950 shadow-glow-emerald'
-                  : 'bg-rose-500 hover:bg-rose-600 text-white'
-              }`}
+              className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-sm font-bold shadow-glow-emerald flex items-center justify-center space-x-1 transition disabled:opacity-50"
             >
               <Check className="w-4 h-4" />
               <span>{isSubmitting ? 'Saving...' : 'Update'}</span>
