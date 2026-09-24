@@ -99,11 +99,6 @@ export default function KPIBanner({ transactions, customCategories = [] }) {
                 <span className="text-[10px] text-teal-500 flex items-center gap-0.5">
                   <PiggyBank className="w-2.5 h-2.5" /> {formatCurrency(allTimeSaved)} saved
                 </span>
-                {allTimeUsed > 0 && (
-                  <span className="text-[10px] text-orange-400 flex items-center gap-0.5">
-                    <ArrowUpFromLine className="w-2.5 h-2.5" /> −{formatCurrency(allTimeUsed)} used
-                  </span>
-                )}
               </div>
             </div>
           </div>
