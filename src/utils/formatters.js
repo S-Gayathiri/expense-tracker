@@ -1,4 +1,22 @@
-export function formatCurrency(amount, currency = 'INR') {
+let _privacyMode = typeof window !== 'undefined' && localStorage.getItem('pt_privacy_mode') === 'true';
+
+export function getPrivacyMode() {
+  return _privacyMode;
+}
+
+export function setPrivacyMode(enabled) {
+  _privacyMode = !!enabled;
+  try {
+    localStorage.setItem('pt_privacy_mode', String(_privacyMode));
+  } catch (e) {
+    // ignore localStorage errors
+  }
+}
+
+export function formatCurrency(amount, currency = 'INR', forceVisible = false) {
+  if (_privacyMode && !forceVisible) {
+    return '₹••••';
+  }
   const num = Number(amount) || 0;
   if (currency === 'INR') {
     return new Intl.NumberFormat('en-IN', {

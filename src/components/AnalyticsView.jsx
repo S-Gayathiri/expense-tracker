@@ -30,6 +30,7 @@ export default function AnalyticsView({
   transactions = [],
   groups = [],
   customCategories = [],
+  isPrivacyMode = false,
   // Filter props passed from parent
   searchQuery,
   setSearchQuery,
@@ -90,7 +91,7 @@ export default function AnalyticsView({
           color: '#94a3b8',
           font: { size: 10, family: 'Plus Jakarta Sans' },
           callback: function(value) {
-            return '₹' + value;
+            return isPrivacyMode ? '••••' : '₹' + value;
           }
         }
       }

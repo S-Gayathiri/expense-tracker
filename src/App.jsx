@@ -14,6 +14,7 @@ import OfflineSyncBanner from './components/OfflineSyncBanner';
 import { api } from './services/api';
 import { getSyncQueue } from './db/indexdb';
 import { exportTransactionsCsv } from './utils/exportCsv';
+import { getPrivacyMode, setPrivacyMode } from './utils/formatters';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('expenses');
@@ -31,6 +32,17 @@ export default function App() {
 
   // PWA beforeinstallprompt handler
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  // Privacy / Mask Mode
+  const [isPrivacyMode, setIsPrivacyMode] = useState(() => getPrivacyMode());
+
+  const handleTogglePrivacy = () => {
+    setIsPrivacyMode((prev) => {
+      const next = !prev;
+      setPrivacyMode(next);
+      return next;
+    });
+  };
 
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);

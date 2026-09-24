@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Cloud, Wifi, WifiOff, Download, RefreshCw, Layers } from 'lucide-react';
+import { ShieldCheck, Cloud, Wifi, WifiOff, Download, RefreshCw, Layers, Eye, EyeOff } from 'lucide-react';
 
 export default function Navbar({
   isOnline,
@@ -8,7 +8,9 @@ export default function Navbar({
   onRefresh,
   isRefreshing,
   deferredPrompt,
-  onInstallApp
+  onInstallApp,
+  isPrivacyMode = false,
+  onTogglePrivacy
 }) {
   return (
     <header className="sticky top-0 z-40 w-full bg-[#090d16]/95 backdrop-blur-md border-b border-slate-800/80 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
@@ -80,6 +82,20 @@ export default function Navbar({
               <span className="text-[11px]">Offline</span>
             )}
           </div>
+
+          {/* Privacy / Mask Mode Toggle */}
+          <button
+            onClick={onTogglePrivacy}
+            className={`p-1.5 rounded-lg border transition-all active:scale-90 ${
+              isPrivacyMode
+                ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                : 'bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border-slate-700'
+            }`}
+            title={isPrivacyMode ? 'Privacy Mode is ON (Amounts masked). Tap to reveal.' : 'Turn on Privacy Mode (Hide amounts in public)'}
+            aria-label="Toggle Privacy Mode"
+          >
+            {isPrivacyMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
 
           {/* Refresh Data Button */}
           <button
