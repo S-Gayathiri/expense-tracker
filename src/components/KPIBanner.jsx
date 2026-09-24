@@ -3,8 +3,9 @@ import { TrendingDown, PiggyBank, Vault, ArrowUpFromLine, ChevronDown, ChevronUp
 import { formatCurrency, formatDateLabel } from '../utils/formatters';
 import { getCategoryConfig } from '../utils/constants';
 
-export default function KPIBanner({ transactions, customCategories = [] }) {
+export default function KPIBanner({ transactions = [], allTransactions = null, customCategories = [] }) {
   const [showSavingsUsed, setShowSavingsUsed] = useState(false);
+  const baseAllTransactions = allTransactions || transactions;
   const [hideSavings, setHideSavings] = useState(() => {
     try {
       const saved = localStorage.getItem('hide_savings_amount');
@@ -45,16 +46,16 @@ export default function KPIBanner({ transactions, customCategories = [] }) {
   // Withdrawal: payment_mode = 'From Savings'
   const isSavingsWithdrawal = (t) => (t.payment_mode || '').toLowerCase() === 'from savings';
 
-  // This month
+  // This month (from active filtered transactions)
   const monthSavingsTx = currentMonthTx.filter(isSavingsDeposit);
   const monthExpenseTx = currentMonthTx.filter(t => !isSavingsDeposit(t));
 
   const totalMonthExpense = monthExpenseTx.reduce((s, t) => s + (Number(t.amount) || 0), 0);
   const totalMonthSavings = monthSavingsTx.reduce((s, t) => s + (Number(t.amount) || 0), 0);
 
-  // All-time savings balance
-  const allTimeSaved       = transactions.filter(isSavingsDeposit).reduce((s, t) => s + (Number(t.amount) || 0), 0);
-  const savingsUsedTx      = transactions.filter(isSavingsWithdrawal);
+  // All-time savings balance (always from allTransactions, unaffected by active filters)
+  const allTimeSaved       = baseAllTransactions.filter(isSavingsDeposit).reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const savingsUsedTx      = baseAllTransactions.filter(isSavingsWithdrawal);
   const allTimeUsed        = savingsUsedTx.reduce((s, t) => s + (Number(t.amount) || 0), 0);
   const overallSavings     = allTimeSaved - allTimeUsed;
 
