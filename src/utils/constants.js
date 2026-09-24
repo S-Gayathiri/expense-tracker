@@ -8,7 +8,6 @@ export const DEFAULT_CATEGORIES = [
   { id: 'Groceries', label: 'Groceries', icon: 'Apple', color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', text: '#34d399' },
   { id: 'Work', label: 'Work & Tech', icon: 'Briefcase', color: '#6366f1', bg: 'rgba(99, 102, 241, 0.15)', text: '#818cf8' },
   { id: 'Savings', label: 'Savings', icon: 'PiggyBank', color: '#14b8a6', bg: 'rgba(20, 184, 166, 0.15)', text: '#2dd4bf' },
-  { id: 'Savings Used', label: 'Savings Used', icon: 'ArrowUpFromLine', color: '#f97316', bg: 'rgba(249, 115, 22, 0.15)', text: '#fb923c' },
   { id: 'Other', label: 'Other', icon: 'CircleEllipsis', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.15)', text: '#cbd5e1' },
 ];
 
@@ -69,6 +68,7 @@ export const PAYMENT_MODES = [
   { id: 'Debit Card', label: 'Debit Card', badge: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
   { id: 'Cash', label: 'Cash', badge: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
   { id: 'Net Banking', label: 'Net Banking', badge: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+  { id: 'From Savings', label: 'From Savings', badge: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
 ];
 
 export const AMOUNT_PRESETS = [100, 200, 500, 1000, 2000, 5000];
