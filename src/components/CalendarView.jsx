@@ -126,23 +126,7 @@ export default function CalendarView({ transactions = [] }) {
           </button>
         </div>
 
-        {/* Monthly KPI Row */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
-            <div className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider mb-0.5">Income</div>
-            <div className="text-sm font-extrabold text-emerald-300">{formatCurrency(monthSummary.income)}</div>
-          </div>
-          <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-center">
-            <div className="text-[10px] text-rose-400 font-semibold uppercase tracking-wider mb-0.5">Expense</div>
-            <div className="text-sm font-extrabold text-rose-300">{formatCurrency(monthSummary.expense)}</div>
-          </div>
-          <div className={`p-2.5 rounded-xl border text-center ${monthSummary.net >= 0 ? 'bg-teal-500/10 border-teal-500/20' : 'bg-orange-500/10 border-orange-500/20'}`}>
-            <div className={`text-[10px] font-semibold uppercase tracking-wider mb-0.5 ${monthSummary.net >= 0 ? 'text-teal-400' : 'text-orange-400'}`}>Net</div>
-            <div className={`text-sm font-extrabold ${monthSummary.net >= 0 ? 'text-teal-300' : 'text-orange-300'}`}>
-              {monthSummary.net >= 0 ? '+' : ''}{formatCurrency(monthSummary.net)}
-            </div>
-          </div>
-        </div>
+
 
         {/* Weekday Headers */}
         <div className="grid grid-cols-7 mb-1">
