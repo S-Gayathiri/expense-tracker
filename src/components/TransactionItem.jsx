@@ -76,9 +76,12 @@ export default function TransactionItem({ transaction, groups = [], customCatego
       {/* Right Side: Amount & Action Buttons */}
       <div className="flex items-center space-x-2 pl-2 flex-shrink-0">
         <div className="text-right">
-          <span className="text-sm sm:text-base font-extrabold text-white tracking-tight">
-            {formatCurrency(transaction.amount)}
+          <span className={`text-sm sm:text-base font-extrabold tracking-tight ${transaction.transaction_type === 'income' ? 'text-emerald-400' : 'text-white'}`}>
+            {transaction.transaction_type === 'income' ? '+' : ''}{formatCurrency(transaction.amount)}
           </span>
+          {transaction.transaction_type === 'income' && (
+            <div className="text-[9px] text-emerald-500 font-semibold uppercase tracking-wider">Income</div>
+          )}
         </div>
 
         {/* Action Controls */}

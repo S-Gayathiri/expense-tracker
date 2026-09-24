@@ -9,9 +9,11 @@ import TransactionEditModal from './components/TransactionEditModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
 import GroupManager from './components/GroupManager';
 import AnalyticsView from './components/AnalyticsView';
+import CalendarView from './components/CalendarView';
 import OfflineSyncBanner from './components/OfflineSyncBanner';
 import { api } from './services/api';
 import { getSyncQueue } from './db/indexdb';
+import { exportTransactionsCsv } from './utils/exportCsv';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('expenses');
@@ -331,6 +333,23 @@ export default function App() {
               onResetFilters={handleResetFilters}
             />
 
+            {/* CSV Export Button */}
+            <div className="flex justify-end">
+              <button
+                id="btn-export-csv"
+                onClick={() => exportTransactionsCsv(filteredTransactions, 'expenses')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition-all active:scale-95"
+                title="Download filtered transactions as CSV"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export CSV
+              </button>
+            </div>
+
             {/* Transaction List */}
             <TransactionList
               transactions={filteredTransactions}
@@ -343,7 +362,14 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 2: Analytics & Visual Summaries (Dynamically reactive to filters) */}
+        {/* Tab 3: Calendar Heatmap */}
+        {activeTab === 'calendar' && (
+          <div className="animate-in fade-in duration-200">
+            <CalendarView transactions={transactions} />
+          </div>
+        )}
+
+        {/* Tab 4: Analytics & Visual Summaries (Dynamically reactive to filters) */}
         {activeTab === 'analytics' && (
           <div className="animate-in fade-in duration-200">
             <AnalyticsView

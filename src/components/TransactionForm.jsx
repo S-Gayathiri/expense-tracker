@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { X, Check, Plus, Tag, CreditCard, Calendar, Users, IndianRupee } from 'lucide-react';
+import { X, Check, Plus, TrendingDown, TrendingUp, CreditCard, Calendar, Users } from 'lucide-react';
 import { PAYMENT_MODES, AMOUNT_PRESETS, getMergedCategories } from '../utils/constants';
 import { getCurrentDateLocal, generateTimestampId } from '../utils/formatters';
 import DescriptionInput from './DescriptionInput';
 
 export default function TransactionForm({ groups = [], customCategories = [], historicalDescriptions = [], onSave, onClose }) {
   const allCategories = getMergedCategories(customCategories);
+  const [txType, setTxType] = useState('expense'); // 'expense' | 'income'
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(getCurrentDateLocal());
@@ -14,6 +15,9 @@ export default function TransactionForm({ groups = [], customCategories = [], hi
   const [groupId, setGroupId] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isIncome = txType === 'income';
+  const accentColor = isIncome ? 'emerald' : 'rose';
 
   const handleAddPreset = (val) => {
     const current = Number(amount) || 0;
@@ -26,18 +30,17 @@ export default function TransactionForm({ groups = [], customCategories = [], hi
 
     const numAmount = parseFloat(amount);
     if (!amount || isNaN(numAmount) || numAmount <= 0) {
-      setError('Please enter a valid expense amount greater than 0.');
+      setError(`Please enter a valid ${isIncome ? 'income' : 'expense'} amount greater than 0.`);
       return;
     }
 
     if (!description.trim()) {
-      setError('Please enter a description for the expense.');
+      setError('Please enter a description.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // Date in YYYY-MM-DD format (no timestamp)
       const formattedDate = (date || getCurrentDateLocal()).split('T')[0].split(' ')[0];
       await onSave({
         id: generateTimestampId(),
@@ -46,11 +49,12 @@ export default function TransactionForm({ groups = [], customCategories = [], hi
         date: formattedDate,
         category,
         payment_mode: paymentMode,
-        group_id: groupId || ''
+        group_id: groupId || '',
+        transaction_type: txType
       });
       onClose();
     } catch (err) {
-      setError(err.message || 'Failed to record expense. Please try again.');
+      setError(err.message || 'Failed to record transaction. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -62,11 +66,11 @@ export default function TransactionForm({ groups = [], customCategories = [], hi
         {/* Drawer Header */}
         <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/50">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-              <Plus className="w-5 h-5 stroke-[2.5]" />
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isIncome ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+              {isIncome ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">Log Expense</h2>
+              <h2 className="text-base font-bold text-white">{isIncome ? 'Log Income' : 'Log Expense'}</h2>
               <p className="text-xs text-slate-400">Save to Google Sheets</p>
             </div>
           </div>
@@ -81,6 +85,34 @@ export default function TransactionForm({ groups = [], customCategories = [], hi
 
         {/* Scrollable Form Body */}
         <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
+          {/* Income / Expense Toggle */}
+          <div className="flex rounded-2xl overflow-hidden border border-slate-800 bg-slate-950">
+            <button
+              type="button"
+              onClick={() => setTxType('expense')}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-bold transition-all ${
+                !isIncome
+                  ? 'bg-rose-500/20 text-rose-300 border-r border-rose-500/30'
+                  : 'text-slate-500 hover:text-slate-300 border-r border-slate-800'
+              }`}
+            >
+              <TrendingDown className="w-4 h-4" />
+              Expense
+            </button>
+            <button
+              type="button"
+              onClick={() => setTxType('income')}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-bold transition-all ${
+                isIncome
+                  ? 'bg-emerald-500/20 text-emerald-300'
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4" />
+              Income
+            </button>
+          </div>
+
           {error && (
             <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-medium">
               {error}
@@ -243,10 +275,14 @@ export default function TransactionForm({ groups = [], customCategories = [], hi
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-600 hover:to-teal-500 text-slate-950 font-bold text-sm shadow-glow-emerald flex items-center justify-center space-x-2 transition-all active:scale-[0.98] disabled:opacity-50"
+              className={`w-full py-3.5 px-4 rounded-2xl font-bold text-sm flex items-center justify-center space-x-2 transition-all active:scale-[0.98] disabled:opacity-50 ${
+                isIncome
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-600 hover:to-teal-500 text-slate-950 shadow-glow-emerald'
+                  : 'bg-gradient-to-r from-rose-500 to-pink-400 hover:from-rose-600 hover:to-pink-500 text-white'
+              }`}
             >
               <Check className="w-4 h-4 stroke-[3]" />
-              <span>{isSubmitting ? 'Saving...' : 'Save Expense'}</span>
+              <span>{isSubmitting ? 'Saving...' : isIncome ? 'Save Income' : 'Save Expense'}</span>
             </button>
           </div>
         </form>
