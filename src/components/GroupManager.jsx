@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Users, Plus, Archive, ArrowRight, Tag, Check, Palette, Layers, FolderArchive } from 'lucide-react';
+import { Users, Plus, Archive, ArrowRight, Tag, Check, Palette, Layers, FolderArchive, Target } from 'lucide-react';
 import { formatCurrency } from '../utils/formatters';
 import { CATEGORY_COLOR_PALETTE, getMergedCategories } from '../utils/constants';
+import SavingsGoalsManager from './SavingsGoalsManager';
 
 export default function GroupManager({
   groups = [],
@@ -14,7 +15,7 @@ export default function GroupManager({
   onSelectGroupFilter,
   onSelectCategoryFilter
 }) {
-  // Segmented Sub-Tab Switch: 'occasions' vs 'categories'
+  // Segmented Sub-Tab Switch: 'categories' vs 'occasions' vs 'goals'
   const [subTab, setSubTab] = useState('categories');
 
   // Occasions State
@@ -107,6 +108,22 @@ export default function GroupManager({
   const activeGroups = groups || [];
   const archivedGroups = (allGroups || []).filter(g => g.status === 'archived');
 
+  // Savings Balance calculations for Goals tracker
+  const isSavingsDeposit = (t) => (t.category || '').toLowerCase() === 'savings';
+  const isSavingsWithdrawal = (t) => (t.payment_mode || '').toLowerCase() === 'from savings';
+  const allTimeSaved = transactions.filter(isSavingsDeposit).reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+  const allTimeUsed = transactions.filter(isSavingsWithdrawal).reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+  const overallSavings = allTimeSaved - allTimeUsed;
+
+  const isSavingsHidden = (() => {
+    try {
+      const saved = localStorage.getItem('hide_savings_amount');
+      return saved === null ? true : saved === 'true';
+    } catch {
+      return true;
+    }
+  })();
+
   return (
     <div className="space-y-4">
       {/* Top Segmented Sub-Tab Switch */}
@@ -134,7 +151,20 @@ export default function GroupManager({
           }`}
         >
           <Users className="w-3.5 h-3.5" />
-          <span>Occasions & Trips ({activeGroups.length})</span>
+          <span>Occasions ({activeGroups.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSubTab('goals')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
+            subTab === 'goals'
+              ? 'bg-emerald-500 text-slate-950 shadow-glow-emerald'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Target className="w-3.5 h-3.5" />
+          <span>Goals</span>
         </button>
       </div>
 
@@ -399,6 +429,18 @@ export default function GroupManager({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* SUB-TAB 3: SAVINGS GOALS & MILESTONES */}
+      {/* ============================================================== */}
+      {subTab === 'goals' && (
+        <div className="animate-in fade-in duration-150">
+          <SavingsGoalsManager
+            overallSavings={overallSavings}
+            isSavingsHidden={isSavingsHidden}
+          />
         </div>
       )}
     </div>
