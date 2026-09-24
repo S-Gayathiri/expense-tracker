@@ -7,9 +7,10 @@ export default function KPIBanner({ transactions, customCategories = [] }) {
   const [showSavingsUsed, setShowSavingsUsed] = useState(false);
   const [hideSavings, setHideSavings] = useState(() => {
     try {
-      return localStorage.getItem('hide_savings_amount') === 'true';
+      const saved = localStorage.getItem('hide_savings_amount');
+      return saved === null ? true : saved === 'true';
     } catch {
-      return false;
+      return true;
     }
   });
 
