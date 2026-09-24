@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { X, Check, Plus, Calendar, Users, RefreshCw } from 'lucide-react';
+import { X, Check, Plus, Calendar, Users } from 'lucide-react';
 import { PAYMENT_MODES, AMOUNT_PRESETS, getMergedCategories } from '../utils/constants';
 import { getCurrentDateLocal, generateTimestampId } from '../utils/formatters';
-import { FREQUENCIES } from '../utils/recurring';
 import DescriptionInput from './DescriptionInput';
 
-export default function TransactionForm({ groups = [], customCategories = [], historicalDescriptions = [], initialRecurring = false, onSave, onClose }) {
+export default function TransactionForm({ groups = [], customCategories = [], historicalDescriptions = [], onSave, onClose }) {
   const allCategories = getMergedCategories(customCategories);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
@@ -13,8 +12,6 @@ export default function TransactionForm({ groups = [], customCategories = [], hi
   const [category, setCategory] = useState(allCategories[0]?.id || 'Food');
   const [paymentMode, setPaymentMode] = useState('UPI');
   const [groupId, setGroupId] = useState('');
-  const [isRecurring, setIsRecurring] = useState(initialRecurring);
-  const [frequency, setFrequency] = useState('monthly');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,9 +45,7 @@ export default function TransactionForm({ groups = [], customCategories = [], hi
         date: formattedDate,
         category,
         payment_mode: paymentMode,
-        group_id: groupId || '',
-        recurring: isRecurring,
-        frequency: isRecurring ? frequency : ''
+        group_id: groupId || ''
       });
       onClose();
     } catch (err) {
@@ -243,61 +238,6 @@ export default function TransactionForm({ groups = [], customCategories = [], hi
                 className="w-full bg-transparent pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none [color-scheme:dark]"
               />
             </div>
-          </div>
-
-          {/* Recurring Toggle */}
-          <div className="pt-1">
-            <div
-              onClick={() => setIsRecurring(v => !v)}
-              className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isRecurring ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-500'}`}>
-                  <RefreshCw className={`w-4 h-4 transition-transform duration-300 ${isRecurring ? 'rotate-180 text-indigo-400' : ''}`} />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-200">Recurring</p>
-                  <p className="text-[10px] text-slate-500">Rent, EMI, subscriptions…</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                aria-label="Toggle recurring"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsRecurring(v => !v);
-                }}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  isRecurring ? 'bg-indigo-600' : 'bg-slate-700'
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                    isRecurring ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Frequency selector — shown only when recurring is on */}
-            {isRecurring && (
-              <div className="flex gap-2 mt-2 animate-in slide-in-from-top-1 duration-150">
-                {FREQUENCIES.map(f => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setFrequency(f.id)}
-                    className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
-                      frequency === f.id
-                        ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300'
-                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Submit Action */}
