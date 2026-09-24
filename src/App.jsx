@@ -10,10 +10,12 @@ import DeleteConfirmModal from './components/DeleteConfirmModal';
 import GroupManager from './components/GroupManager';
 import AnalyticsView from './components/AnalyticsView';
 import CalendarView from './components/CalendarView';
+import RecurringSection from './components/RecurringSection';
 import OfflineSyncBanner from './components/OfflineSyncBanner';
 import { api } from './services/api';
 import { getSyncQueue } from './db/indexdb';
 import { exportTransactionsCsv } from './utils/exportCsv';
+import { daysUntilDue, computeNextDue } from './utils/recurring';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('expenses');
@@ -210,6 +212,29 @@ export default function App() {
     }
   };
 
+  // One-tap log a recurring expense for today
+  const handleLogRecurring = async (template) => {
+    const today = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+    const { generateTimestampId } = await import('./utils/formatters');
+    const res = await api.createTransaction({
+      id: generateTimestampId(),
+      amount: template.amount,
+      description: template.description,
+      date: todayStr,
+      category: template.category,
+      payment_mode: template.payment_mode,
+      group_id: template.group_id || '',
+      recurring: true,
+      frequency: template.frequency || 'monthly',
+    });
+    if (res.transaction) {
+      setTransactions(prev => [res.transaction, ...prev]);
+    }
+    checkPendingQueue();
+  };
+
   const handleSelectGroupFilter = (groupId) => {
     setSelectedGroup(groupId);
     setActiveTab('expenses');
@@ -320,6 +345,36 @@ export default function App() {
             {/* KPI Cards Banner */}
             <KPIBanner transactions={filteredTransactions} customCategories={customCategories} />
 
+            {/* Due-soon recurring reminder */}
+            {(() => {
+              const dueSoon = transactions
+                .filter(t => (t.recurring === true || t.recurring === 'true'))
+                .reduce((acc, t) => {
+                  const key = `${(t.description || '').toLowerCase()}__${t.category}`;
+                  if (!acc[key] || (t.date || '') > (acc[key].date || '')) acc[key] = t;
+                  return acc;
+                }, {});
+              const urgentItems = Object.values(dueSoon).filter(t => {
+                const next = computeNextDue(t.date, t.frequency || 'monthly');
+                const days = daysUntilDue(next);
+                return days !== null && days <= 3;
+              });
+              if (urgentItems.length === 0) return null;
+              return (
+                <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-start gap-2.5 animate-in fade-in duration-200">
+                  <span className="text-lg leading-none mt-0.5">🔁</span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-indigo-300">
+                      {urgentItems.length} recurring expense{urgentItems.length > 1 ? 's' : ''} due soon
+                    </p>
+                    <p className="text-[11px] text-indigo-400 truncate">
+                      {urgentItems.map(t => t.description).join(', ')} — go to Manage tab to log
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Filter & Search Bar with Google Flights 2-handle picker & multi-category selector */}
             <FilterBar
               searchQuery={searchQuery}
@@ -397,9 +452,25 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 3: Manage (Occasions & Categories) */}
+        {/* Tab 3: Manage (Occasions, Categories & Recurring) */}
         {activeTab === 'manage' && (
-          <div className="animate-in fade-in duration-200">
+          <div className="animate-in fade-in duration-200 space-y-6">
+            {/* Recurring Expenses Section */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-base">🔁</span>
+                <h2 className="text-sm font-bold text-white">Recurring Expenses</h2>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 font-semibold">
+                  {transactions.filter(t => t.recurring === true || t.recurring === 'true').length}
+                </span>
+              </div>
+              <RecurringSection
+                transactions={transactions}
+                customCategories={customCategories}
+                onLogRecurring={handleLogRecurring}
+              />
+            </div>
+
             <GroupManager
               groups={groups}
               allGroups={allGroups}

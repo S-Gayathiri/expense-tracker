@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Check, Calendar, Users } from 'lucide-react';
+import { X, Check, Calendar, Users, RefreshCw } from 'lucide-react';
 import { PAYMENT_MODES, getMergedCategories } from '../utils/constants';
+import { FREQUENCIES } from '../utils/recurring';
 import DescriptionInput from './DescriptionInput';
 
 export default function TransactionEditModal({
@@ -23,6 +24,8 @@ export default function TransactionEditModal({
   const [category, setCategory] = useState(transaction.category || allCategories[0]?.id || 'Food');
   const [paymentMode, setPaymentMode] = useState(transaction.payment_mode || 'UPI');
   const [groupId, setGroupId] = useState(transaction.group_id || '');
+  const [isRecurring, setIsRecurring] = useState(transaction.recurring === true || transaction.recurring === 'true');
+  const [frequency, setFrequency] = useState(transaction.frequency || 'monthly');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -50,7 +53,9 @@ export default function TransactionEditModal({
         date: formattedDate,
         category,
         payment_mode: paymentMode,
-        group_id: groupId || ''
+        group_id: groupId || '',
+        recurring: isRecurring,
+        frequency: isRecurring ? frequency : ''
       });
       onClose();
     } catch (err) {
@@ -192,6 +197,50 @@ export default function TransactionEditModal({
               onChange={(e) => setDate(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:border-emerald-500 focus:outline-none [color-scheme:dark]"
             />
+          </div>
+
+          {/* Recurring Toggle */}
+          <div className="pt-1">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isRecurring ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-500'}`}>
+                  <RefreshCw className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-300">Recurring</p>
+                  <p className="text-[10px] text-slate-500">Rent, EMI, subscriptions…</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsRecurring(v => !v)}
+                className={`relative w-10 h-5.5 rounded-full transition-colors duration-200 flex-shrink-0 ${
+                  isRecurring ? 'bg-indigo-500' : 'bg-slate-700'
+                }`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform duration-200 ${
+                  isRecurring ? 'translate-x-4.5' : 'translate-x-0'
+                }`} />
+              </button>
+            </div>
+            {isRecurring && (
+              <div className="flex gap-2 mt-2 animate-in slide-in-from-top-1 duration-150">
+                {FREQUENCIES.map(f => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setFrequency(f.id)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
+                      frequency === f.id
+                        ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Buttons */}
