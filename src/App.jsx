@@ -43,7 +43,10 @@ export default function App() {
   const [selectedCategories, setSelectedCategories] = useState([]); // array of category IDs (empty = all)
   const [selectedPaymentMode, setSelectedPaymentMode] = useState('ALL');
   const [selectedGroup, setSelectedGroup] = useState('ALL');
-  const [startDate, setStartDate] = useState('');
+  const [startDate, setStartDate] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+  });
   const [endDate, setEndDate] = useState('');
 
   // Update pending sync count
@@ -218,11 +221,13 @@ export default function App() {
   };
 
   const handleResetFilters = () => {
+    const now = new Date();
+    const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
     setSearchQuery('');
     setSelectedCategories([]);
     setSelectedPaymentMode('ALL');
     setSelectedGroup('ALL');
-    setStartDate('');
+    setStartDate(thisMonthStart);
     setEndDate('');
   };
 
