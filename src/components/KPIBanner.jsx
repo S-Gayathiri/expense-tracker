@@ -1,10 +1,33 @@
 import React, { useState } from 'react';
-import { TrendingDown, PiggyBank, Vault, ArrowUpFromLine, ChevronDown, ChevronUp } from 'lucide-react';
+import { TrendingDown, PiggyBank, Vault, ArrowUpFromLine, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
 import { formatCurrency, formatDateLabel } from '../utils/formatters';
 import { getCategoryConfig } from '../utils/constants';
 
 export default function KPIBanner({ transactions, customCategories = [] }) {
   const [showSavingsUsed, setShowSavingsUsed] = useState(false);
+  const [hideSavings, setHideSavings] = useState(() => {
+    try {
+      return localStorage.getItem('hide_savings_amount') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleHideSavings = (e) => {
+    e?.stopPropagation?.();
+    setHideSavings(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('hide_savings_amount', String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const maskAmount = (amount) => {
+    if (hideSavings) return '₹••••';
+    return formatCurrency(amount);
+  };
 
   const now = new Date();
   const currentMonth = now.getMonth();
@@ -67,12 +90,23 @@ export default function KPIBanner({ transactions, customCategories = [] }) {
           <div className="absolute top-0 right-0 w-20 h-20 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Savings</span>
-            <div className="w-7 h-7 rounded-xl bg-teal-500/15 flex items-center justify-center text-teal-400">
-              <PiggyBank className="w-4 h-4" />
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={toggleHideSavings}
+                className="p-1 rounded-md text-slate-500 hover:text-teal-400 hover:bg-slate-800/80 transition-colors"
+                title={hideSavings ? 'Show savings amount' : 'Hide savings amount'}
+                aria-label="Toggle savings privacy"
+              >
+                {hideSavings ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
+              <div className="w-7 h-7 rounded-xl bg-teal-500/15 flex items-center justify-center text-teal-400">
+                <PiggyBank className="w-4 h-4" />
+              </div>
             </div>
           </div>
           <div className={`text-2xl font-extrabold tracking-tight leading-none mb-1 ${totalMonthSavings > 0 ? 'text-teal-300' : 'text-slate-500'}`}>
-            {formatCurrency(totalMonthSavings)}
+            {maskAmount(totalMonthSavings)}
           </div>
           <span className="text-[11px] text-teal-500 font-medium">
             {monthSavingsTx.length} this month
@@ -97,7 +131,7 @@ export default function KPIBanner({ transactions, customCategories = [] }) {
               <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Overall Savings</p>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-[10px] text-teal-500 flex items-center gap-0.5">
-                  <PiggyBank className="w-2.5 h-2.5" /> {formatCurrency(allTimeSaved)} saved
+                  <PiggyBank className="w-2.5 h-2.5" /> {maskAmount(allTimeSaved)} saved
                 </span>
               </div>
             </div>
@@ -106,12 +140,21 @@ export default function KPIBanner({ transactions, customCategories = [] }) {
           <div className="flex items-center gap-2 flex-shrink-0">
             <div className="text-right">
               <div className={`text-2xl font-extrabold tracking-tight ${overallSavings > 0 ? 'text-teal-300' : overallSavings < 0 ? 'text-orange-300' : 'text-slate-500'}`}>
-                {formatCurrency(Math.abs(overallSavings))}
+                {maskAmount(Math.abs(overallSavings))}
               </div>
               {overallSavings < 0 && (
                 <div className="text-[10px] text-orange-400 font-medium">over-withdrawn</div>
               )}
             </div>
+            <button
+              type="button"
+              onClick={toggleHideSavings}
+              className="p-1 rounded-md text-slate-500 hover:text-teal-400 hover:bg-slate-800/80 transition-colors"
+              title={hideSavings ? 'Show savings amount' : 'Hide savings amount'}
+              aria-label="Toggle savings privacy"
+            >
+              {hideSavings ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            </button>
             {savingsUsedTx.length > 0 && (
               <div className="text-slate-500">
                 {showSavingsUsed ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
