@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -10,10 +10,11 @@ import {
   Title
 } from 'chart.js';
 import { Doughnut, Bar } from 'react-chartjs-2';
-import { PieChart, TrendingUp, CreditCard, Layers, Tag, Filter } from 'lucide-react';
+import { PieChart, TrendingUp, CreditCard, Layers, Tag, Filter, Sparkles, ArrowRight } from 'lucide-react';
 import { PAYMENT_MODES, getMergedCategories, getCategoryConfig } from '../utils/constants';
 import { formatCurrency } from '../utils/formatters';
 import FilterBar from './FilterBar';
+import YearInReviewModal from './YearInReviewModal';
 
 // Register Chart.js components
 ChartJS.register(
@@ -45,6 +46,8 @@ export default function AnalyticsView({
   onDateRangeChange,
   onResetFilters
 }) {
+  const [showWrapped, setShowWrapped] = useState(false);
+
   // Common chart dark mode theme options
   const doughnutOptions = {
     responsive: true,
@@ -282,6 +285,40 @@ export default function AnalyticsView({
             onResetFilters={onResetFilters}
           />
         </div>
+      )}
+
+      {/* Year-in-Review Wrapped Callout Banner */}
+      <div className="glass-card p-4 rounded-3xl border-amber-500/30 bg-gradient-to-r from-amber-500/15 via-slate-900 to-indigo-500/15 flex items-center justify-between gap-3 shadow-lg">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 flex items-center justify-center text-lg flex-shrink-0 shadow-md">
+            ✨
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+              <span>Financial Wrapped</span>
+              <span className="px-1.5 py-0.2 rounded-md bg-amber-400/20 text-amber-300 text-[9px] font-black">STORY</span>
+            </h3>
+            <p className="text-[11px] text-slate-400 truncate">
+              Your year in review: peak savings, top category & badge!
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowWrapped(true)}
+          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-slate-950 text-xs font-extrabold shadow-md active:scale-95 transition flex-shrink-0 flex items-center gap-1"
+        >
+          <span>View</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {showWrapped && (
+        <YearInReviewModal
+          transactions={transactions}
+          customCategories={customCategories}
+          onClose={() => setShowWrapped(false)}
+        />
       )}
 
       {/* Header Metric */}
