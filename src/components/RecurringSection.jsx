@@ -15,7 +15,7 @@ function DueBadge({ days }) {
   return <span className="px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-slate-800 text-slate-400 border border-slate-700">{dueLabel(days)}</span>;
 }
 
-export default function RecurringSection({ transactions = [], customCategories = [], onLogRecurring }) {
+export default function RecurringSection({ transactions = [], customCategories = [], onLogRecurring, onAddNew }) {
   const [paidIds, setPaidIds] = useState(new Set());
 
   // Build unique recurring templates — one per description+category combo, most recent entry wins
@@ -60,9 +60,18 @@ export default function RecurringSection({ transactions = [], customCategories =
           <RefreshCw className="w-6 h-6 text-indigo-400" />
         </div>
         <h3 className="text-sm font-bold text-white mb-1">No Recurring Expenses</h3>
-        <p className="text-xs text-slate-400 max-w-xs mx-auto">
+        <p className="text-xs text-slate-400 max-w-xs mx-auto mb-4">
           When adding an expense, toggle <strong className="text-slate-300">Recurring</strong> to track it here — rent, EMIs, subscriptions, etc.
         </p>
+        {onAddNew && (
+          <button
+            type="button"
+            onClick={onAddNew}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 active:scale-95 transition-all"
+          >
+            <Plus className="w-4 h-4" /> Add Recurring Expense
+          </button>
+        )}
       </div>
     );
   }

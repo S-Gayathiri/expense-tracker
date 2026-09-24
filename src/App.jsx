@@ -16,6 +16,7 @@ import { api } from './services/api';
 import { getSyncQueue } from './db/indexdb';
 import { exportTransactionsCsv } from './utils/exportCsv';
 import { daysUntilDue, computeNextDue } from './utils/recurring';
+import { Plus } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('expenses');
@@ -36,9 +37,15 @@ export default function App() {
 
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addModalInitialRecurring, setAddModalInitialRecurring] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [deletingTransaction, setDeletingTransaction] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleOpenAddModal = (isRecurring = false) => {
+    setAddModalInitialRecurring(isRecurring);
+    setIsAddModalOpen(true);
+  };
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -457,17 +464,27 @@ export default function App() {
           <div className="animate-in fade-in duration-200 space-y-6">
             {/* Recurring Expenses Section */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-base">🔁</span>
-                <h2 className="text-sm font-bold text-white">Recurring Expenses</h2>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 font-semibold">
-                  {transactions.filter(t => t.recurring === true || t.recurring === 'true').length}
-                </span>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🔁</span>
+                  <h2 className="text-sm font-bold text-white">Recurring Expenses</h2>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 font-semibold">
+                    {transactions.filter(t => t.recurring === true || t.recurring === 'true').length}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleOpenAddModal(true)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/20 text-xs font-semibold active:scale-95 transition-all"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add
+                </button>
               </div>
               <RecurringSection
                 transactions={transactions}
                 customCategories={customCategories}
                 onLogRecurring={handleLogRecurring}
+                onAddNew={() => handleOpenAddModal(true)}
               />
             </div>
 
@@ -492,8 +509,12 @@ export default function App() {
           groups={groups}
           customCategories={customCategories}
           historicalDescriptions={historicalDescriptions}
+          initialRecurring={addModalInitialRecurring}
           onSave={handleSaveTransaction}
-          onClose={() => setIsAddModalOpen(false)}
+          onClose={() => {
+            setIsAddModalOpen(false);
+            setAddModalInitialRecurring(false);
+          }}
         />
       )}
 
@@ -523,7 +544,7 @@ export default function App() {
       <BottomNav
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenAddModal={() => setIsAddModalOpen(true)}
+        onOpenAddModal={() => handleOpenAddModal(false)}
       />
     </div>
   );

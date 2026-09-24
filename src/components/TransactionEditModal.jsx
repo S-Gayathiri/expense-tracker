@@ -201,26 +201,35 @@ export default function TransactionEditModal({
 
           {/* Recurring Toggle */}
           <div className="pt-1">
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
-              <div className="flex items-center gap-2">
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isRecurring ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-500'}`}>
-                  <RefreshCw className="w-3.5 h-3.5" />
+            <div
+              onClick={() => setIsRecurring(v => !v)}
+              className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isRecurring ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-500'}`}>
+                  <RefreshCw className={`w-4 h-4 transition-transform duration-300 ${isRecurring ? 'rotate-180 text-indigo-400' : ''}`} />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-300">Recurring</p>
+                  <p className="text-xs font-semibold text-slate-200">Recurring</p>
                   <p className="text-[10px] text-slate-500">Rent, EMI, subscriptions…</p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setIsRecurring(v => !v)}
-                className={`relative w-10 h-5.5 rounded-full transition-colors duration-200 flex-shrink-0 ${
-                  isRecurring ? 'bg-indigo-500' : 'bg-slate-700'
+                aria-label="Toggle recurring"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsRecurring(v => !v);
+                }}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  isRecurring ? 'bg-indigo-600' : 'bg-slate-700'
                 }`}
               >
-                <span className={`absolute top-0.5 left-0.5 w-4.5 h-4.5 bg-white rounded-full shadow transition-transform duration-200 ${
-                  isRecurring ? 'translate-x-4.5' : 'translate-x-0'
-                }`} />
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                    isRecurring ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
               </button>
             </div>
             {isRecurring && (
