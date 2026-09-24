@@ -8,6 +8,7 @@ export const DEFAULT_CATEGORIES = [
   { id: 'Groceries', label: 'Groceries', icon: 'Apple', color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)', text: '#34d399' },
   { id: 'Work', label: 'Work & Tech', icon: 'Briefcase', color: '#6366f1', bg: 'rgba(99, 102, 241, 0.15)', text: '#818cf8' },
   { id: 'Savings', label: 'Savings', icon: 'PiggyBank', color: '#14b8a6', bg: 'rgba(20, 184, 166, 0.15)', text: '#2dd4bf' },
+  { id: 'Savings Used', label: 'Savings Used', icon: 'ArrowUpFromLine', color: '#f97316', bg: 'rgba(249, 115, 22, 0.15)', text: '#fb923c' },
   { id: 'Other', label: 'Other', icon: 'CircleEllipsis', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.15)', text: '#cbd5e1' },
 ];
 

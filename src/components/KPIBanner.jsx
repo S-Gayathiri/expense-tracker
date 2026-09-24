@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingDown, PiggyBank, Vault } from 'lucide-react';
+import { TrendingDown, PiggyBank, Vault, ArrowUpFromLine } from 'lucide-react';
 import { formatCurrency } from '../utils/formatters';
 
 export default function KPIBanner({ transactions }) {
@@ -7,23 +7,27 @@ export default function KPIBanner({ transactions }) {
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
 
-  // Current month transactions
   const currentMonthTx = transactions.filter(t => {
     if (!t.date) return false;
     const d = new Date(t.date.replace(' ', 'T'));
     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
   });
 
-  // Savings = category 'Savings' (case-insensitive)
-  const isSavingsTx = (t) => (t.category || '').toLowerCase() === 'savings';
+  const isSavings     = (t) => (t.category || '').toLowerCase() === 'savings';
+  const isSavingsUsed = (t) => (t.category || '').toLowerCase() === 'savings used';
 
-  const monthSavingsTx   = currentMonthTx.filter(isSavingsTx);
-  const monthExpenseTx   = currentMonthTx.filter(t => !isSavingsTx(t));
-  const allSavingsTx     = transactions.filter(isSavingsTx);
+  // This month
+  const monthSavingsTx      = currentMonthTx.filter(isSavings);
+  const monthSavingsUsedTx  = currentMonthTx.filter(isSavingsUsed);
+  const monthExpenseTx      = currentMonthTx.filter(t => !isSavings(t) && !isSavingsUsed(t));
 
-  const totalMonthExpense  = monthExpenseTx.reduce((s, t) => s + (Number(t.amount) || 0), 0);
-  const totalMonthSavings  = monthSavingsTx.reduce((s, t) => s + (Number(t.amount) || 0), 0);
-  const totalOverallSavings = allSavingsTx.reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const totalMonthExpense   = monthExpenseTx.reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const totalMonthSavings   = monthSavingsTx.reduce((s, t) => s + (Number(t.amount) || 0), 0);
+
+  // All-time savings balance
+  const allTimeSaved        = transactions.filter(isSavings).reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const allTimeUsed         = transactions.filter(isSavingsUsed).reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const overallSavings      = allTimeSaved - allTimeUsed;
 
   return (
     <div className="space-y-3">
@@ -33,9 +37,7 @@ export default function KPIBanner({ transactions }) {
         <div className="glass-card p-4 rounded-2xl border-slate-800 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-20 h-20 bg-rose-500/10 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              This Month
-            </span>
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">This Month</span>
             <div className="w-7 h-7 rounded-xl bg-rose-500/15 flex items-center justify-center text-rose-400">
               <TrendingDown className="w-4 h-4" />
             </div>
@@ -52,9 +54,7 @@ export default function KPIBanner({ transactions }) {
         <div className="glass-card p-4 rounded-2xl border-slate-800 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-20 h-20 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-              Savings
-            </span>
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Savings</span>
             <div className="w-7 h-7 rounded-xl bg-teal-500/15 flex items-center justify-center text-teal-400">
               <PiggyBank className="w-4 h-4" />
             </div>
@@ -68,22 +68,34 @@ export default function KPIBanner({ transactions }) {
         </div>
       </div>
 
-      {/* Row 2: Overall Savings (all-time) */}
-      <div className="glass-card p-4 rounded-2xl border-slate-800 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-teal-500/5 to-emerald-500/5 pointer-events-none" />
+      {/* Row 2: Overall Savings balance */}
+      <div className={`glass-card p-4 rounded-2xl border-slate-800 relative overflow-hidden ${overallSavings < 0 ? 'border-orange-500/20' : ''}`}>
+        <div className={`absolute inset-0 pointer-events-none ${overallSavings >= 0 ? 'bg-gradient-to-r from-teal-500/5 to-emerald-500/5' : 'bg-gradient-to-r from-orange-500/5 to-rose-500/5'}`} />
         <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/8 rounded-full blur-3xl pointer-events-none" />
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-teal-500/20 flex items-center justify-center text-teal-400 flex-shrink-0">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${overallSavings >= 0 ? 'bg-teal-500/20 text-teal-400' : 'bg-orange-500/20 text-orange-400'}`}>
               <Vault className="w-5 h-5" />
             </div>
             <div>
               <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Overall Savings</p>
-              <p className="text-[10px] text-slate-500 mt-0.5">All time · {allSavingsTx.length} entr{allSavingsTx.length !== 1 ? 'ies' : 'y'}</p>
+              {/* Breakdown: saved vs used */}
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[10px] text-teal-500 flex items-center gap-0.5">
+                  <PiggyBank className="w-2.5 h-2.5" /> {formatCurrency(allTimeSaved)}
+                </span>
+                {allTimeUsed > 0 && (
+                  <span className="text-[10px] text-orange-400 flex items-center gap-0.5">
+                    <ArrowUpFromLine className="w-2.5 h-2.5" /> −{formatCurrency(allTimeUsed)}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-          <div className={`text-2xl font-extrabold tracking-tight ${totalOverallSavings > 0 ? 'text-teal-300' : 'text-slate-500'}`}>
-            {formatCurrency(totalOverallSavings)}
+          <div className={`text-2xl font-extrabold tracking-tight ${overallSavings > 0 ? 'text-teal-300' : overallSavings < 0 ? 'text-orange-300' : 'text-slate-500'}`}>
+            {formatCurrency(Math.abs(overallSavings))}
+            {overallSavings < 0 && <span className="text-sm font-semibold text-orange-400 ml-1">used more than saved</span>}
           </div>
         </div>
       </div>

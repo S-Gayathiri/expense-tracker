@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Utensils, Plane, Zap, ShoppingBag, HeartPulse, Film, Apple, Briefcase,
-  CircleEllipsis, Edit3, Trash2, CloudOff, Users, PiggyBank
+  CircleEllipsis, Edit3, Trash2, CloudOff, Users, PiggyBank, ArrowUpFromLine
 } from 'lucide-react';
 import { CATEGORIES, PAYMENT_MODES, getCategoryConfig } from '../utils/constants';
 import { formatCurrency } from '../utils/formatters';
@@ -16,6 +16,7 @@ const ICON_MAP = {
   Apple,
   Briefcase,
   PiggyBank,
+  ArrowUpFromLine,
   CircleEllipsis
 };
 
