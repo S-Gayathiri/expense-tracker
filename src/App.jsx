@@ -318,7 +318,7 @@ export default function App() {
         {activeTab === 'expenses' && (
           <div className="space-y-4 animate-in fade-in duration-200">
             {/* KPI Cards Banner */}
-            <KPIBanner transactions={filteredTransactions} />
+            <KPIBanner transactions={filteredTransactions} customCategories={customCategories} />
 
             {/* Filter & Search Bar with Google Flights 2-handle picker & multi-category selector */}
             <FilterBar
